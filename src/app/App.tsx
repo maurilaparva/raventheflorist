@@ -23,7 +23,9 @@ const COLLECTIONS = [
 // ─── MAIN APP ─────────────────────────────────────────────────────────────────
 
 export default function App() {
-  const [page, setPage] = useState<Page>("home");
+  const [page, setPage] = useState<Page>(() =>
+    new URLSearchParams(window.location.search).has("checkout") ? "rose-bouquets" : "home"
+  );
 
   if (page === "rose-bouquets") {
     return <RoseBouquetsPage onBack={() => setPage("home")} onNavigateHome={(p) => setPage((p as Page) ?? "home")} />;
@@ -1454,6 +1456,8 @@ const ACCESSORY_LIST = [
 
 const WRAPPING_COLORS = ["White", "Black", "Red", "Pink", "Blue"];
 
+const CHECKOUT_API = "https://lxifagwspshizosfbmev.supabase.co/functions/v1/server/make-server-7e4d3869/checkout";
+
 function RoseBouquetsPage({ onBack, onNavigateHome }: { onBack: () => void; onNavigateHome: (page?: string) => void }) {
   const [submitted, setSubmitted] = useState(false);
   const [showPoliciesModal, setShowPoliciesModal] = useState(false);
@@ -1467,13 +1471,42 @@ function RoseBouquetsPage({ onBack, onNavigateHome }: { onBack: () => void; onNa
   const [wrappingColor, setWrappingColor] = useState("");
   const [flowerOpen, setFlowerOpen] = useState(false);
   const [accessoryOpen, setAccessoryOpen] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<"card" | "zelle" | "applepay">("card");
-  const [cardInfo, setCardInfo] = useState({ number: "", expiry: "", cvv: "", name: "" });
+  const [paymentMethod, setPaymentMethod] = useState<"pay-online" | "zelle">("pay-online");
+  const [payingOnline, setPayingOnline] = useState(false);
+  const [checkoutNotice, setCheckoutNotice] = useState<"cancelled" | "failed" | null>(null);
+  const [verifying, setVerifying] = useState(false);
+  const [depositConfirmed, setDepositConfirmed] = useState(false);
   const [agreedToPolicies, setAgreedToPolicies] = useState(false);
   const [discountInput, setDiscountInput] = useState("");
   const [discountApplied, setDiscountApplied] = useState(false);
   const [discountError, setDiscountError] = useState("");
   const [address, setAddress] = useState({ street: "", apt: "", city: "", state: "Minnesota", zip: "" });
+
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const checkout = params.get("checkout");
+    if (!checkout) return;
+    const sessionId = params.get("session_id");
+    window.history.replaceState({}, "", window.location.pathname);
+
+    if (checkout === "success" && sessionId) {
+      setVerifying(true);
+      fetch(`${CHECKOUT_API}/verify/${encodeURIComponent(sessionId)}`)
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.paid) {
+            setDepositConfirmed(true);
+            setSubmitted(true);
+          } else {
+            setCheckoutNotice("failed");
+          }
+        })
+        .catch(() => setCheckoutNotice("failed"))
+        .finally(() => setVerifying(false));
+    } else if (checkout === "cancelled") {
+      setCheckoutNotice("cancelled");
+    }
+  }, []);
 
   const selectedOrder = ROSE_OPTIONS.find((o) => o.value === form.order);
   const isCustom = form.order === "custom";
@@ -1510,6 +1543,50 @@ function RoseBouquetsPage({ onBack, onNavigateHome }: { onBack: () => void; onNa
     }
   }
 
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (paymentMethod === "zelle" || isCustom) {
+      setSubmitted(true);
+      return;
+    }
+
+    setCheckoutNotice(null);
+    setPayingOnline(true);
+    try {
+      const res = await fetch(`${CHECKOUT_API}/create-session`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          order: form.order,
+          roseColors,
+          flowerAddons,
+          accessoryAddons,
+          wrappingColor,
+          dateType,
+          discountCode: discountApplied ? discountInput : "",
+          name: form.name,
+          contactMethod,
+          email: form.email,
+          phone: form.phone,
+          date: form.date,
+          timeSlot: form.timeSlot,
+          notes: form.notes,
+          origin: window.location.origin + window.location.pathname,
+        }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        setCheckoutNotice("failed");
+        setPayingOnline(false);
+      }
+    } catch {
+      setCheckoutNotice("failed");
+      setPayingOnline(false);
+    }
+  }
+
   return (
     <div className="min-h-screen bg-background text-foreground" style={{ fontFamily: "'DM Sans', sans-serif" }}>
 
@@ -1536,11 +1613,17 @@ function RoseBouquetsPage({ onBack, onNavigateHome }: { onBack: () => void; onNa
       <div className="pt-28 px-8 md:px-16">
         <div className="max-w-2xl mx-auto py-14">
 
-          {submitted ? (
+          {verifying ? (
+            <div className="py-24 text-center text-sm text-muted-foreground">Confirming your payment…</div>
+          ) : submitted ? (
             <div className="py-10">
               <p className="text-3xl mb-3" style={{ fontFamily: "'Playfair Display', serif" }}>Thank you!</p>
               <p className="text-sm text-muted-foreground mb-4">Thank you for ordering with Raven the Florist — can't wait to be in contact soon!</p>
-              <p className="text-muted-foreground font-light mb-10">Your booking request has been received. Expect to hear back within 24 hours to confirm.</p>
+              <p className="text-muted-foreground font-light mb-10">
+                {depositConfirmed
+                  ? "Your deposit payment was received and your booking is confirmed. Expect to hear back within 24 hours to finalize details."
+                  : "Your booking request has been received. Expect to hear back within 24 hours to confirm."}
+              </p>
               <div className="border-t border-border pt-8">
                 <p className="text-xs tracking-[0.25em] uppercase text-muted-foreground mb-6" style={{ fontFamily: "'DM Mono', monospace" }}>What Happens Next</p>
                 <div className="flex flex-col gap-5">
@@ -1562,7 +1645,14 @@ function RoseBouquetsPage({ onBack, onNavigateHome }: { onBack: () => void; onNa
               </div>
             </div>
           ) : (
-            <form onSubmit={(e) => { e.preventDefault(); setSubmitted(true); }} className="flex flex-col gap-7">
+            <form onSubmit={handleSubmit} className="flex flex-col gap-7">
+              {checkoutNotice && (
+                <div className="bg-destructive/10 border border-destructive/30 px-4 py-3 text-sm text-destructive">
+                  {checkoutNotice === "cancelled"
+                    ? "Your payment was cancelled — no charge was made. You can try again below."
+                    : "We couldn't confirm your payment. If you were charged, please contact us — otherwise, try again below."}
+                </div>
+              )}
               <div>
                 <p className="text-xs tracking-[0.3em] uppercase text-muted-foreground mb-4" style={{ fontFamily: "'DM Mono', monospace" }}>Booking Details</p>
                 <h1 className="text-4xl md:text-5xl mb-3" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 400 }}>Rose Bouquets</h1>
@@ -1852,7 +1942,7 @@ function RoseBouquetsPage({ onBack, onNavigateHome }: { onBack: () => void; onNa
                   {dateType === "delivery" && (
                     <div className="flex justify-between text-xs text-muted-foreground mb-1">
                       <span>Delivery fee</span>
-                      <span>$10.00</span>
+                      <span>${deliveryFee.toFixed(2)}</span>
                     </div>
                   )}
                   {discountApplied && (
@@ -1915,8 +2005,7 @@ function RoseBouquetsPage({ onBack, onNavigateHome }: { onBack: () => void; onNa
                 )}
                 <div className="flex flex-wrap gap-2 mb-6">
                   {([
-                    { id: "card", label: "Card", icon: <CreditCard size={13} /> },
-                    { id: "applepay", label: "Apple Pay", icon: <span className="text-sm leading-none"></span> },
+                    { id: "pay-online", label: "Pay Online", icon: <CreditCard size={13} /> },
                     { id: "zelle", label: "Zelle", icon: <span className="font-bold text-xs text-[#6D1ED4]">Z</span> },
                   ] as const).map(({ id, label, icon }) => (
                     <button key={id} type="button" onClick={() => setPaymentMethod(id)} className={`flex items-center gap-1.5 px-4 py-2.5 border text-sm transition-all ${paymentMethod === id ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground hover:border-foreground"}`}>
@@ -1925,20 +2014,10 @@ function RoseBouquetsPage({ onBack, onNavigateHome }: { onBack: () => void; onNa
                   ))}
                 </div>
 
-                {paymentMethod === "card" && (
-                  <div className="grid md:grid-cols-2 gap-6 mb-6">
-                    <div className="md:col-span-2 flex flex-col gap-1"><label className="text-xs text-muted-foreground">Cardholder name</label><input type="text" value={cardInfo.name} onChange={(e) => setCardInfo({ ...cardInfo, name: e.target.value })} className="border-b border-border bg-transparent py-2.5 text-sm focus:outline-none focus:border-foreground transition-colors" placeholder="Jasmine Williams" /></div>
-                    <div className="md:col-span-2 flex flex-col gap-1"><label className="text-xs text-muted-foreground">Card number</label><input type="text" value={cardInfo.number} onChange={(e) => setCardInfo({ ...cardInfo, number: e.target.value })} className="border-b border-border bg-transparent py-2.5 text-sm focus:outline-none focus:border-foreground transition-colors" placeholder="1234 5678 9012 3456" maxLength={19} /></div>
-                    <div className="flex flex-col gap-1"><label className="text-xs text-muted-foreground">Expiry</label><input type="text" value={cardInfo.expiry} onChange={(e) => setCardInfo({ ...cardInfo, expiry: e.target.value })} className="border-b border-border bg-transparent py-2.5 text-sm focus:outline-none focus:border-foreground transition-colors" placeholder="MM / YY" maxLength={7} /></div>
-                    <div className="flex flex-col gap-1"><label className="text-xs text-muted-foreground">CVV</label><input type="text" value={cardInfo.cvv} onChange={(e) => setCardInfo({ ...cardInfo, cvv: e.target.value })} className="border-b border-border bg-transparent py-2.5 text-sm focus:outline-none focus:border-foreground transition-colors" placeholder="•••" maxLength={4} /></div>
-                  </div>
-                )}
-
-                {paymentMethod === "applepay" && (
+                {paymentMethod === "pay-online" && !isCustom && (
                   <div className="mb-6 p-5 bg-secondary border border-border">
-                    <p className="text-sm font-medium mb-1">Pay via Apple Pay</p>
-                    <p className="text-xs text-muted-foreground mb-2">Send your deposit of <span className="font-medium text-foreground">${deposit.toFixed(2)}</span> to <a href="mailto:Raventheflorist@yahoo.com" className="font-medium text-foreground underline hover:text-primary transition-colors">Raventheflorist@yahoo.com</a> via Apple Pay after submitting. Include your name and bouquet in the note.</p>
-                    <p className="text-xs text-muted-foreground">Order confirmed once payment is received.</p>
+                    <p className="text-sm font-medium mb-1">Pay securely by card, Apple Pay, or Cash App Pay</p>
+                    <p className="text-xs text-muted-foreground">You'll be taken to a secure Stripe checkout page to pay your <span className="font-medium text-foreground">${deposit.toFixed(2)}</span> deposit. Your booking is confirmed the moment payment goes through — no waiting on a call back.</p>
                   </div>
                 )}
 
@@ -1965,11 +2044,11 @@ function RoseBouquetsPage({ onBack, onNavigateHome }: { onBack: () => void; onNa
 
                 <button
                   type="submit"
-                  disabled={!agreedToPolicies}
+                  disabled={!agreedToPolicies || payingOnline}
                   className="bg-primary text-primary-foreground px-10 py-3.5 text-sm flex items-center gap-2 hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <ShoppingBag size={14} />
-                  {isCustom ? "Send Inquiry" : paymentMethod === "card" ? "Place Order" : "Submit Booking"}
+                  {payingOnline ? "Redirecting to secure checkout…" : isCustom ? "Send Inquiry" : paymentMethod === "pay-online" ? "Pay Deposit & Book" : "Submit Booking"}
                 </button>
                 {!agreedToPolicies && <p className="text-xs text-muted-foreground mt-2">Please agree to the policies above to continue.</p>}
               </div>
