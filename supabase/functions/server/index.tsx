@@ -3,7 +3,7 @@ import { cors } from "npm:hono/cors";
 import { logger } from "npm:hono/logger";
 import { createClient } from "jsr:@supabase/supabase-js@2.49.8";
 import Stripe from "npm:stripe@17";
-import * as kv from "./kv_store.tsx";
+import * as kv from "./kv_store.ts";
 
 const app = new Hono();
 
@@ -26,14 +26,16 @@ app.get("/make-server-7e4d3869/health", (c) => {
 const BUCKET = "gallery";
 
 function supabase() {
-  return createClient(
-    Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-  );
+  const url = Deno.env.get("SUPABASE_URL") ?? Deno.env.get("SB_URL") ?? Deno.env.get("PROJECT_SUPABASE_URL");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? Deno.env.get("SB_SERVICE_ROLE_KEY") ?? Deno.env.get("SERVICE_ROLE_KEY");
+  if (!url || !serviceKey) throw new Error("Missing SUPABASE_URL or service role key environment variable");
+  return createClient(url, serviceKey);
 }
 
 function stripe() {
-  return new Stripe(Deno.env.get("STRIPE_SECRET_KEY")!, { apiVersion: "2024-12-18.acacia" });
+  const key = Deno.env.get("STRIPE_SECRET_KEY") ?? Deno.env.get("SB_STRIPE_SECRET_KEY") ?? Deno.env.get("STRIPE_KEY");
+  if (!key) throw new Error("Missing STRIPE_SECRET_KEY environment variable");
+  return new Stripe(key, { apiVersion: "2024-12-18.acacia" });
 }
 
 // ─── Rose Bouquets pricing (source of truth — mirrors src/app/App.tsx, never trust client-sent totals) ───
