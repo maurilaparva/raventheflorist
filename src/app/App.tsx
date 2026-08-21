@@ -239,7 +239,7 @@ function MainSite({ onNavigate }: { onNavigate: (p: Page) => void }) {
         </div>
         <div className="px-8 md:px-16 grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
           {COLLECTIONS.map((col) => {
-            const dest: Page | null = col.name === "Rose Bouquet" ? "rose-bouquets" : col.name === "Floral Basket" ? "floral-basket" : col.name === "Build Your Own Bouquet" ? "build-bouquet" : null;
+            const dest: Page | null = col.name === "Rose Bouquet" ? "rose-bouquets" : col.name === "Floral Basket" ? "floral-basket" : col.name === "Build Your Own Bouquet" ? "build-bouquet" : col.name === "Event" ? "event-inquiry" : null;
             return (
               <div key={col.name} className="group cursor-pointer" onClick={() => dest && onNavigate(dest)}>
                 <div className="relative overflow-hidden bg-card aspect-[3/4] mb-4">
