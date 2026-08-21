@@ -106,7 +106,7 @@ function MainSite({ onNavigate }: { onNavigate: (p: Page) => void }) {
       <div className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border py-2 px-4 flex items-center justify-center gap-2">
         <span className="text-accent text-sm">🌿</span>
         <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "0.8rem" }} className="text-foreground">
-          20% off your order —
+          15% off your order —
         </span>
         <span className="text-xs tracking-[0.2em] uppercase text-muted-foreground" style={{ fontFamily: "'DM Mono', monospace" }}>use code</span>
         <span className="text-xs tracking-[0.2em] uppercase text-foreground font-medium" style={{ fontFamily: "'DM Mono', monospace" }}>BLOOMS</span>
@@ -387,7 +387,7 @@ function FloralBasketPage({ onBack, onNavigateHome }: { onBack: () => void; onNa
       {/* Promo banner */}
       <div className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border py-2 px-4 flex items-center justify-center gap-2">
         <span className="text-accent text-sm">🌿</span>
-        <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "0.8rem" }} className="text-foreground">20% off your order —</span>
+        <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "0.8rem" }} className="text-foreground">15% off your order —</span>
         <span className="text-xs tracking-[0.2em] uppercase text-muted-foreground" style={{ fontFamily: "'DM Mono', monospace" }}>use code</span>
         <span className="text-xs tracking-[0.2em] uppercase text-foreground font-medium" style={{ fontFamily: "'DM Mono', monospace" }}>BLOOMS</span>
       </div>
@@ -646,7 +646,7 @@ function BuildBouquetPage({ onBack }: { onBack: () => void }) {
       {/* Promo banner */}
       <div className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border py-2 px-4 flex items-center justify-center gap-2">
         <span className="text-accent text-sm">🌿</span>
-        <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "0.8rem" }} className="text-foreground">20% off your order —</span>
+        <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "0.8rem" }} className="text-foreground">15% off your order —</span>
         <span className="text-xs tracking-[0.2em] uppercase text-muted-foreground" style={{ fontFamily: "'DM Mono', monospace" }}>use code</span>
         <span className="text-xs tracking-[0.2em] uppercase text-foreground font-medium" style={{ fontFamily: "'DM Mono', monospace" }}>BLOOMS</span>
       </div>
@@ -875,7 +875,7 @@ function GalleryPage({ onBack }: { onBack: () => void }) {
       {/* Promo banner */}
       <div className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border py-2 px-4 flex items-center justify-center gap-2">
         <span className="text-accent text-sm">🌿</span>
-        <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "0.8rem" }}>20% off your order —</span>
+        <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "0.8rem" }}>15% off your order —</span>
         <span className="text-xs tracking-[0.2em] uppercase text-muted-foreground" style={{ fontFamily: "'DM Mono', monospace" }}>use code</span>
         <span className="text-xs tracking-[0.2em] uppercase text-foreground font-medium" style={{ fontFamily: "'DM Mono', monospace" }}>BLOOMS</span>
       </div>
@@ -1008,7 +1008,7 @@ function EventInquiryPage({ onBack }: { onBack: () => void }) {
       {/* Promo banner */}
       <div className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border py-2 px-4 flex items-center justify-center gap-2">
         <span className="text-accent text-sm">🌿</span>
-        <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "0.8rem" }}>20% off your order —</span>
+        <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "0.8rem" }}>15% off your order —</span>
         <span className="text-xs tracking-[0.2em] uppercase text-muted-foreground" style={{ fontFamily: "'DM Mono', monospace" }}>use code</span>
         <span className="text-xs tracking-[0.2em] uppercase text-foreground font-medium" style={{ fontFamily: "'DM Mono', monospace" }}>BLOOMS</span>
       </div>
@@ -1361,7 +1361,7 @@ function ContactPage({ onBack }: { onBack: () => void }) {
     <div className="min-h-screen bg-background text-foreground">
       {/* Promo Banner */}
       <div className="bg-primary text-primary-foreground text-center py-2 text-xs tracking-widest uppercase font-medium">
-        20% off your order — use code BLOOMS
+        15% off your order — use code BLOOMS
       </div>
 
       {/* Header */}
@@ -1474,7 +1474,7 @@ function PoliciesPage({ onBack }: { onBack: () => void }) {
       {/* Promo banner */}
       <div className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border py-2 px-4 flex items-center justify-center gap-2">
         <span className="text-accent text-sm">🌿</span>
-        <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "0.8rem" }}>20% off your order —</span>
+        <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "0.8rem" }}>15% off your order —</span>
         <span className="text-xs tracking-[0.2em] uppercase text-muted-foreground" style={{ fontFamily: "'DM Mono', monospace" }}>use code</span>
         <span className="text-xs tracking-[0.2em] uppercase text-foreground font-medium" style={{ fontFamily: "'DM Mono', monospace" }}>BLOOMS</span>
       </div>
@@ -1510,7 +1510,7 @@ function PoliciesPage({ onBack }: { onBack: () => void }) {
           <p className="text-xs tracking-[0.3em] uppercase text-muted-foreground mb-4" style={{ fontFamily: "'DM Mono', monospace" }}>After You Place an Order</p>
           <h2 className="text-3xl mb-3" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 400 }}>What to expect</h2>
           <p className="text-sm text-muted-foreground font-light mb-3 max-w-lg">Here's a quick overview of what happens once your order or inquiry is submitted.</p>
-          <p className="text-sm text-muted-foreground font-light mb-10 max-w-lg">Placing an order through an inquiry? The <span className="text-foreground font-medium">BLOOMS</span> discount still applies — just include the code in your notes and the 20% off will be honored when your quote is sent.</p>
+          <p className="text-sm text-muted-foreground font-light mb-10 max-w-lg">Placing an order through an inquiry? The <span className="text-foreground font-medium">BLOOMS</span> discount still applies — just include the code in your notes and the 15% off will be honored when your quote is sent.</p>
           <div className="flex flex-col divide-y divide-border">
             {[
               { step: "01", title: "Expect to hear back", desc: "You'll be contacted via your preferred method — email or phone — to confirm your order details and discuss any final touches." },
@@ -1541,10 +1541,10 @@ function PoliciesPage({ onBack }: { onBack: () => void }) {
 // ─── ROSE BOUQUETS PAGE ───────────────────────────────────────────────────────
 
 const ROSE_OPTIONS = [
-  { value: "25", label: "25 Premium Roses", price: "$90", maxColors: 1 },
-  { value: "50", label: "50 Premium Roses", price: "$180", maxColors: 2 },
-  { value: "75", label: "75 Premium Roses", price: "$260", maxColors: 3 },
-  { value: "100", label: "100 Premium Roses", price: "$340", maxColors: 4 },
+  { value: "25", label: "25 Premium Roses", price: "$95", maxColors: 1 },
+  { value: "50", label: "50 Premium Roses", price: "$185", maxColors: 2 },
+  { value: "75", label: "75 Premium Roses", price: "$265", maxColors: 3 },
+  { value: "100", label: "100 Premium Roses", price: "$345", maxColors: 4 },
 ];
 
 const ROSE_COLORS = [
@@ -1552,27 +1552,44 @@ const ROSE_COLORS = [
   "Peach", "Orange", "Yellow", "Purple", "Sage",
 ];
 
+const FLOWER_LIST = [
+  { name: "Baby's Breath", price: 10 },
+  { name: "Spray Roses", price: 15 },
+  { name: "Baby Breath Lettering", price: 25 },
+  { name: "Greenery", price: 10, desc: "Nagi, Eucalyptus, Ruscus, Oregonia" },
+];
+
+// Basic and Special/Design Wrapping Paper are priced by rose-count tier (see tieredWrappingPrice), not a flat price here.
 const ACCESSORY_LIST = [
-  { name: "Basic Wrapping Paper", price: 0, hasColors: true },
-  { name: "Note", price: 3 },
-  { name: "Diamond Pins", price: 3 },
-  { name: "Pearl Pins", price: 3 },
-  { name: "Heart Pins", price: 3 },
-  { name: "Star Pins", price: 3 },
-  { name: "Pearl Bow", price: 3 },
-  { name: "Butterflies", price: 3 },
-  { name: "Pearl Mesh", price: 3 },
-  { name: "Bow", price: 4 },
+  { name: "Basic Wrapping Paper", price: null as number | null, hasColors: true },
+  { name: "Note", price: 3.5 },
+  { name: "Diamond Pins", price: 3.5 },
+  { name: "Pearl Pins", price: 3.5 },
+  { name: "Heart Pins", price: 3.5 },
+  { name: "Star Pins", price: 3.5 },
+  { name: "Pearl Bow", price: 5, desc: "1–3 included" },
+  { name: "Butterflies", price: 3.5 },
+  { name: "Pearl Mesh", price: 5 },
+  { name: "Bow", price: 5, desc: "1–6 bows included" },
   { name: "Tissue Paper", price: 4 },
-  { name: "Banner", price: 5 },
-  { name: "Greenery", price: 5 },
+  { name: "Banner", price: 10 },
   { name: "Glitter", price: 5 },
   { name: "Crown", price: 7 },
-  { name: "Special/Design Wrapping Paper", price: 10 },
-  { name: "Baby Breath Letters (Any Size)", price: 20 },
+  { name: "Special/Design Wrapping Paper", price: null as number | null },
 ];
 
 const WRAPPING_COLORS = ["White", "Black", "Red", "Pink", "Blue"];
+
+function tieredWrappingPrice(name: string, orderKey: string): number {
+  const highTier = orderKey === "75" || orderKey === "100";
+  if (name === "Basic Wrapping Paper") return highTier ? 15 : 10;
+  if (name === "Special/Design Wrapping Paper") return highTier ? 20 : 15;
+  return 0;
+}
+
+function formatPrice(n: number): string {
+  return n % 1 === 0 ? `$${n}` : `$${n.toFixed(2)}`;
+}
 
 const CHECKOUT_API = "https://oxavbqgxbcrqdffpedaf.supabase.co/functions/v1/server/make-server-7e4d3869/checkout";
 
@@ -1631,14 +1648,18 @@ function RoseBouquetsPage({ onBack, onNavigateHome }: { onBack: () => void; onNa
   const isCustom = form.order === "custom";
   const maxColors = selectedOrder?.maxColors ?? 0;
 
-  const FLOWER_PRICES: Record<string, number> = { "Baby's Breath": 10, "Oriental Lilies": 20, "Spray Roses": 20, "Premium Gerbera": 15, "Snapdragons": 15 };
-  const ACCESSORY_PRICES: Record<string, number> = Object.fromEntries(ACCESSORY_LIST.map(a => [a.name, a.price]));
+  const FLOWER_PRICES: Record<string, number> = Object.fromEntries(FLOWER_LIST.map(f => [f.name, f.price]));
+  const ACCESSORY_PRICES: Record<string, number> = Object.fromEntries(ACCESSORY_LIST.map(a => [a.name, a.price ?? 0]));
+  function getAccessoryPrice(name: string): number {
+    if (name === "Basic Wrapping Paper" || name === "Special/Design Wrapping Paper") return tieredWrappingPrice(name, form.order);
+    return ACCESSORY_PRICES[name] ?? 0;
+  }
   const roseBase = isCustom ? 0 : (form.order ? parseInt(ROSE_OPTIONS.find(o => o.value === form.order)?.price.replace("$","") || "0") : 0);
   const flowerTotal = flowerAddons.reduce((sum, f) => sum + (FLOWER_PRICES[f] ?? 0), 0);
-  const accessoryTotal = accessoryAddons.reduce((sum, a) => sum + (ACCESSORY_PRICES[a] ?? 0), 0);
+  const accessoryTotal = accessoryAddons.reduce((sum, a) => sum + getAccessoryPrice(a), 0);
   const deliveryFee = dateType === "delivery" ? 15 : 0;
   const preDiscountSubtotal = roseBase + flowerTotal + accessoryTotal + deliveryFee;
-  const discountAmount = discountApplied ? parseFloat((preDiscountSubtotal * 0.20).toFixed(2)) : 0;
+  const discountAmount = discountApplied ? parseFloat((preDiscountSubtotal * 0.15).toFixed(2)) : 0;
   const subtotal = parseFloat((preDiscountSubtotal - discountAmount).toFixed(2));
   const tax = parseFloat((subtotal * 0.07).toFixed(2));
   const grandTotal = parseFloat((subtotal + tax).toFixed(2));
@@ -1758,7 +1779,7 @@ function RoseBouquetsPage({ onBack, onNavigateHome }: { onBack: () => void; onNa
       <div className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border py-2 px-4 flex items-center justify-center gap-2">
         <span className="text-accent text-sm">🌿</span>
         <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "0.8rem" }} className="text-foreground">
-          20% off your order —
+          15% off your order —
         </span>
         <span className="text-xs tracking-[0.2em] uppercase text-muted-foreground" style={{ fontFamily: "'DM Mono', monospace" }}>use code</span>
         <span className="text-xs tracking-[0.2em] uppercase text-foreground font-medium" style={{ fontFamily: "'DM Mono', monospace" }}>BLOOMS</span>
@@ -1982,7 +2003,7 @@ function RoseBouquetsPage({ onBack, onNavigateHome }: { onBack: () => void; onNa
                   </button>
                   {flowerOpen && (
                     <div className="absolute top-full left-0 right-0 z-20 bg-background border border-border shadow-sm mt-1">
-                      {[["Baby's Breath", "$10"], ["Oriental Lilies", "$20"], ["Spray Roses", "$20"], ["Premium Gerbera", "$15"], ["Snapdragons", "$15"]].map(([name, price]) => {
+                      {FLOWER_LIST.map(({ name, price, desc }) => {
                         const checked = flowerAddons.includes(name);
                         return (
                           <label key={name} className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-secondary transition-colors border-b border-border last:border-0">
@@ -1991,8 +2012,9 @@ function RoseBouquetsPage({ onBack, onNavigateHome }: { onBack: () => void; onNa
                                 {checked && <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                               </div>
                               <span className="text-sm">{name}</span>
+                              {desc && <span className="text-xs text-muted-foreground">({desc})</span>}
                             </div>
-                            <span className="text-xs text-muted-foreground">{price}</span>
+                            <span className="text-xs text-muted-foreground">{formatPrice(price)}</span>
                             <input type="checkbox" className="hidden" checked={checked} onChange={() => setFlowerAddons(checked ? flowerAddons.filter(f => f !== name) : [...flowerAddons, name])} />
                           </label>
                         );
@@ -2018,8 +2040,9 @@ function RoseBouquetsPage({ onBack, onNavigateHome }: { onBack: () => void; onNa
                   </button>
                   {accessoryOpen && (
                     <div className="absolute top-full left-0 right-0 z-20 bg-background border border-border shadow-sm mt-1 max-h-72 overflow-y-auto">
-                      {ACCESSORY_LIST.map(({ name, price }) => {
+                      {ACCESSORY_LIST.map(({ name, desc, hasColors }) => {
                         const checked = accessoryAddons.includes(name);
+                        const price = getAccessoryPrice(name);
                         return (
                           <label key={name} className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-secondary transition-colors border-b border-border last:border-0">
                             <div className="flex items-center gap-3">
@@ -2027,9 +2050,10 @@ function RoseBouquetsPage({ onBack, onNavigateHome }: { onBack: () => void; onNa
                                 {checked && <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                               </div>
                               <span className="text-sm">{name}</span>
-                              {name === "Basic Wrapping Paper" && <span className="text-xs text-muted-foreground">(White, Black, Red, Pink, Blue)</span>}
+                              {hasColors && <span className="text-xs text-muted-foreground">(White, Black, Red, Pink, Blue)</span>}
+                              {desc && <span className="text-xs text-muted-foreground">({desc})</span>}
                             </div>
-                            <span className="text-xs text-muted-foreground">{price === 0 ? "Free" : `$${price}`}</span>
+                            <span className="text-xs text-muted-foreground">{price === 0 ? "Free" : formatPrice(price)}</span>
                             <input type="checkbox" className="hidden" checked={checked} onChange={() => setAccessoryAddons(checked ? accessoryAddons.filter(a => a !== name) : [...accessoryAddons, name])} />
                           </label>
                         );
@@ -2055,7 +2079,7 @@ function RoseBouquetsPage({ onBack, onNavigateHome }: { onBack: () => void; onNa
               {/* Notes + inspo upload */}
               <div className="flex flex-col gap-1">
                 <label className="text-xs text-muted-foreground">Special requests or notes</label>
-                <p className="text-xs text-muted-foreground/70 mb-1">Don't see a flower add-on or accessory you're looking for? List it here and it will be followed up on with your order.</p>
+                <p className="text-xs text-muted-foreground/70 mb-1">Don't see a flower add-on or accessory you're looking for, want more added, or looking for 100+ roses or additional flowers? List it here and it will be followed up on with your order.</p>
                 <textarea rows={3} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} className="border-b border-border bg-transparent py-2.5 text-sm focus:outline-none focus:border-foreground transition-colors resize-none" placeholder="Card messages, Custom Color options, etc." />
               </div>
 
@@ -2098,13 +2122,13 @@ function RoseBouquetsPage({ onBack, onNavigateHome }: { onBack: () => void; onNa
                   {flowerAddons.map(f => (
                     <div key={f} className="flex justify-between text-xs text-muted-foreground mb-1">
                       <span>{f}</span>
-                      <span>${FLOWER_PRICES[f]}</span>
+                      <span>{formatPrice(FLOWER_PRICES[f])}</span>
                     </div>
                   ))}
                   {accessoryAddons.map(a => (
                     <div key={a} className="flex justify-between text-xs text-muted-foreground mb-1">
                       <span>{a === "Basic Wrapping Paper" && wrappingColor ? `Basic Wrapping Paper (${wrappingColor})` : a}</span>
-                      <span>{ACCESSORY_PRICES[a] === 0 ? "Free" : `$${ACCESSORY_PRICES[a]}`}</span>
+                      <span>{getAccessoryPrice(a) === 0 ? "Free" : formatPrice(getAccessoryPrice(a))}</span>
                     </div>
                   ))}
                   {dateType === "delivery" && (
@@ -2115,7 +2139,7 @@ function RoseBouquetsPage({ onBack, onNavigateHome }: { onBack: () => void; onNa
                   )}
                   {discountApplied && (
                     <div className="flex justify-between text-xs text-primary font-medium mb-1">
-                      <span>Discount (BLOOMS — 20% off)</span>
+                      <span>Discount (BLOOMS — 15% off)</span>
                       <span>−${discountAmount.toFixed(2)}</span>
                     </div>
                   )}
@@ -2167,7 +2191,7 @@ function RoseBouquetsPage({ onBack, onNavigateHome }: { onBack: () => void; onNa
                         Apply
                       </button>
                     </div>
-                    {discountApplied && <p className="text-xs text-primary mt-1">✓ 20% discount applied!</p>}
+                    {discountApplied && <p className="text-xs text-primary mt-1">✓ 15% discount applied!</p>}
                     {discountError && <p className="text-xs text-destructive mt-1">{discountError}</p>}
                   </div>
                 )}

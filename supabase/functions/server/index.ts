@@ -41,43 +41,46 @@ function stripe() {
 // ─── Rose Bouquets pricing (source of truth — mirrors src/app/App.tsx, never trust client-sent totals) ───
 
 const ROSE_OPTIONS: Record<string, { label: string; price: number }> = {
-  "25": { label: "25 Premium Roses", price: 90 },
-  "50": { label: "50 Premium Roses", price: 180 },
-  "75": { label: "75 Premium Roses", price: 260 },
-  "100": { label: "100 Premium Roses", price: 340 },
+  "25": { label: "25 Premium Roses", price: 95 },
+  "50": { label: "50 Premium Roses", price: 185 },
+  "75": { label: "75 Premium Roses", price: 265 },
+  "100": { label: "100 Premium Roses", price: 345 },
 };
 
 const FLOWER_PRICES: Record<string, number> = {
   "Baby's Breath": 10,
-  "Oriental Lilies": 20,
-  "Spray Roses": 20,
-  "Premium Gerbera": 15,
-  "Snapdragons": 15,
+  "Spray Roses": 15,
+  "Baby Breath Lettering": 25,
+  "Greenery": 10,
 };
 
+// Basic and Special/Design Wrapping Paper are priced by rose-count tier, not flat — see wrappingPaperPrice().
 const ACCESSORY_PRICES: Record<string, number> = {
-  "Basic Wrapping Paper": 0,
-  "Note": 3,
-  "Diamond Pins": 3,
-  "Pearl Pins": 3,
-  "Heart Pins": 3,
-  "Star Pins": 3,
-  "Pearl Bow": 3,
-  "Butterflies": 3,
-  "Pearl Mesh": 3,
-  "Bow": 4,
+  "Note": 3.5,
+  "Diamond Pins": 3.5,
+  "Pearl Pins": 3.5,
+  "Heart Pins": 3.5,
+  "Star Pins": 3.5,
+  "Pearl Bow": 5,
+  "Butterflies": 3.5,
+  "Pearl Mesh": 5,
+  "Bow": 5,
   "Tissue Paper": 4,
-  "Banner": 5,
-  "Greenery": 5,
+  "Banner": 10,
   "Glitter": 5,
   "Crown": 7,
-  "Special/Design Wrapping Paper": 10,
-  "Baby Breath Letters (Any Size)": 20,
 };
+
+function wrappingPaperPrice(name: string, orderKey: string): number {
+  const highTier = orderKey === "75" || orderKey === "100";
+  if (name === "Basic Wrapping Paper") return highTier ? 15 : 10;
+  if (name === "Special/Design Wrapping Paper") return highTier ? 20 : 15;
+  return 0;
+}
 
 const DELIVERY_FEE = 15;
 const DISCOUNT_CODE = "BLOOMS";
-const DISCOUNT_RATE = 0.2;
+const DISCOUNT_RATE = 0.15;
 const TAX_RATE = 0.07;
 
 // Minnesota ZIP codes fall within this range — delivery is Minnesota-only.
@@ -101,7 +104,10 @@ function computeDeposit(body: any) {
 
   const roseBase = order.price;
   const flowerTotal = flowerAddons.reduce((sum, f) => sum + (FLOWER_PRICES[f] ?? 0), 0);
-  const accessoryTotal = accessoryAddons.reduce((sum, a) => sum + (ACCESSORY_PRICES[a] ?? 0), 0);
+  const accessoryTotal = accessoryAddons.reduce((sum, a) => {
+    if (a === "Basic Wrapping Paper" || a === "Special/Design Wrapping Paper") return sum + wrappingPaperPrice(a, body.order);
+    return sum + (ACCESSORY_PRICES[a] ?? 0);
+  }, 0);
   const deliveryFee = body.dateType === "delivery" ? DELIVERY_FEE : 0;
 
   const preDiscountSubtotal = roseBase + flowerTotal + accessoryTotal + deliveryFee;
@@ -267,6 +273,31 @@ app.post("/make-server-7e4d3869/checkout/create-session", async (c) => {
 
   const { order, deposit, grandTotal } = computed;
 
+  const orderMetadata: Record<string, string> = {
+    customerName: body.name ?? "",
+    contactMethod: body.contactMethod ?? "",
+    email: body.email ?? "",
+    phone: body.phone ?? "",
+    order: order.label,
+    roseColors: Array.isArray(body.roseColors) ? body.roseColors.join(", ") : "",
+    flowerAddons: Array.isArray(body.flowerAddons) ? body.flowerAddons.join(", ") : "",
+    accessoryAddons: Array.isArray(body.accessoryAddons) ? body.accessoryAddons.join(", ") : "",
+    wrappingColor: body.wrappingColor ?? "",
+    dateType: body.dateType ?? "",
+    deliveryAddress: address
+      ? [address.street, address.apt, `${address.city ?? ""}, ${address.state ?? ""} ${address.zip ?? ""}`]
+          .filter(Boolean)
+          .join(", ")
+          .slice(0, 400)
+      : "",
+    date: body.date ?? "",
+    timeSlot: body.timeSlot ?? "",
+    notes: (body.notes ?? "").slice(0, 400),
+    grandTotal: grandTotal.toFixed(2),
+    deposit: deposit.toFixed(2),
+    inspirationPhotos: Array.isArray(body.photoUrls) ? body.photoUrls.join(", ").slice(0, 500) : "",
+  };
+
   try {
     const session = await stripe().checkout.sessions.create({
       mode: "payment",
@@ -286,29 +317,11 @@ app.post("/make-server-7e4d3869/checkout/create-session", async (c) => {
       success_url: `${body.origin}?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${body.origin}?checkout=cancelled`,
       customer_email: body.contactMethod === "email" ? body.email : undefined,
-      metadata: {
-        customerName: body.name ?? "",
-        contactMethod: body.contactMethod ?? "",
-        email: body.email ?? "",
-        phone: body.phone ?? "",
-        order: order.label,
-        roseColors: Array.isArray(body.roseColors) ? body.roseColors.join(", ") : "",
-        flowerAddons: Array.isArray(body.flowerAddons) ? body.flowerAddons.join(", ") : "",
-        accessoryAddons: Array.isArray(body.accessoryAddons) ? body.accessoryAddons.join(", ") : "",
-        wrappingColor: body.wrappingColor ?? "",
-        dateType: body.dateType ?? "",
-        deliveryAddress: address
-          ? [address.street, address.apt, `${address.city ?? ""}, ${address.state ?? ""} ${address.zip ?? ""}`]
-              .filter(Boolean)
-              .join(", ")
-              .slice(0, 400)
-          : "",
-        date: body.date ?? "",
-        timeSlot: body.timeSlot ?? "",
-        notes: (body.notes ?? "").slice(0, 400),
-        grandTotal: grandTotal.toFixed(2),
-        deposit: deposit.toFixed(2),
-        inspirationPhotos: Array.isArray(body.photoUrls) ? body.photoUrls.join(", ").slice(0, 500) : "",
+      metadata: orderMetadata,
+      // Session metadata alone isn't enough — Stripe's default "Payments" dashboard view shows the
+      // PaymentIntent/Charge, which has its own separate metadata. Without this, that view looks empty.
+      payment_intent_data: {
+        metadata: orderMetadata,
       },
     });
     return c.json({ url: session.url });
