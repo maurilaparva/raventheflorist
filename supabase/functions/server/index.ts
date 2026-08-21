@@ -5,7 +5,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2.49.8";
 import Stripe from "npm:stripe@17";
 import * as kv from "./kv_store.ts";
 
-const app = new Hono();
+const app = new Hono().basePath("/server");
 
 app.use('*', logger(console.log));
 app.use(
@@ -79,6 +79,18 @@ const DELIVERY_FEE = 15;
 const DISCOUNT_CODE = "BLOOMS";
 const DISCOUNT_RATE = 0.2;
 const TAX_RATE = 0.07;
+
+// Minnesota ZIP codes fall within this range — delivery is Minnesota-only.
+const MN_ZIP_MIN = 55001;
+const MN_ZIP_MAX = 56763;
+
+function isMinnesotaZip(zip: unknown): boolean {
+  if (typeof zip !== "string") return false;
+  const digits = zip.replace(/\D/g, "").slice(0, 5);
+  if (digits.length !== 5) return false;
+  const n = parseInt(digits, 10);
+  return n >= MN_ZIP_MIN && n <= MN_ZIP_MAX;
+}
 
 function computeDeposit(body: any) {
   const order = ROSE_OPTIONS[body.order];
@@ -158,6 +170,11 @@ app.post("/make-server-7e4d3869/checkout/create-session", async (c) => {
   if (!computed) return c.json({ error: "Invalid rose bouquet selection" }, 400);
   if (!body.origin || typeof body.origin !== "string") return c.json({ error: "Missing origin" }, 400);
 
+  const address = body.address && typeof body.address === "object" ? body.address : null;
+  if (body.dateType === "delivery" && !isMinnesotaZip(address?.zip)) {
+    return c.json({ error: "We currently only deliver within Minnesota." }, 400);
+  }
+
   const { order, deposit, grandTotal } = computed;
 
   try {
@@ -190,6 +207,12 @@ app.post("/make-server-7e4d3869/checkout/create-session", async (c) => {
         accessoryAddons: Array.isArray(body.accessoryAddons) ? body.accessoryAddons.join(", ") : "",
         wrappingColor: body.wrappingColor ?? "",
         dateType: body.dateType ?? "",
+        deliveryAddress: address
+          ? [address.street, address.apt, `${address.city ?? ""}, ${address.state ?? ""} ${address.zip ?? ""}`]
+              .filter(Boolean)
+              .join(", ")
+              .slice(0, 400)
+          : "",
         date: body.date ?? "",
         timeSlot: body.timeSlot ?? "",
         notes: (body.notes ?? "").slice(0, 400),

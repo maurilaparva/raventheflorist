@@ -5,6 +5,8 @@ import heroPhoto from "@/imports/IMG_1994-1.png";
 import roseBouquetPhoto from "@/imports/flower.jpeg";
 import buildBouquetPhoto from "@/imports/Untitled-4.jpeg";
 import eventPhoto from "@/imports/store.jpeg";
+import basketPhoto from "@/imports/basket.jpeg";
+import ravenPhoto from "@/imports/raven.jpg";
 
 type Page = "home" | "rose-bouquets" | "floral-basket" | "build-bouquet" | "policies" | "gallery" | "event-inquiry" | "contact";
 
@@ -14,7 +16,7 @@ const NAV_LINKS = ["Event Inquiry", "Policies", "Gallery"];
 
 const COLLECTIONS = [
   { name: "Rose Bouquet", desc: "Handcrafted rose bouquets for every occasion", photo: roseBouquetPhoto, style: { objectPosition: "60% 40%" } },
-  { name: "Floral Basket", desc: "Beautiful baskets designed to make a lasting impression", photo: "https://images.unsplash.com/photo-1548532928-b34e3be62f07?w=500&h=600&fit=crop&auto=format", style: {} },
+  { name: "Floral Basket", desc: "Beautiful baskets designed to make a lasting impression", photo: basketPhoto, style: { objectPosition: "50% 40%" } },
   { name: "Build Your Own Bouquet", desc: "Design a one-of-a-kind bouquet that's uniquely yours", photo: buildBouquetPhoto, style: { objectPosition: "50% 100%" } },
   { name: "Event", desc: "Custom floral arrangements for unforgettable celebrations", photo: eventPhoto, style: {} },
 ];
@@ -217,8 +219,10 @@ function MainSite({ onNavigate }: { onNavigate: (p: Page) => void }) {
 
       {/* ABOUT */}
       <section id="about" className="py-24 grid md:grid-cols-2 overflow-hidden">
-        <div className="relative bg-secondary min-h-[400px] md:min-h-full">
-          <img src="https://images.unsplash.com/photo-1453728013993-6d66e9c9123a?w=800&h=900&fit=crop&auto=format" alt="Florist arranging flowers" className="absolute inset-0 w-full h-full object-cover" />
+        <div className="flex items-center justify-center p-6 md:p-8 bg-background">
+          <div className="relative w-full max-w-xl aspect-[3/4]">
+            <ImageWithFallback src={ravenPhoto} alt="Raven, the florist behind Raven the Florist" className="absolute inset-0 w-full h-full object-cover" />
+          </div>
         </div>
         <div className="px-10 md:px-20 py-20 flex flex-col justify-center">
           <p className="text-xs tracking-[0.25em] uppercase text-muted-foreground mb-6" style={{ fontFamily: "'DM Mono', monospace" }}>My Story</p>
@@ -750,7 +754,7 @@ function BuildBouquetPage({ onBack }: { onBack: () => void }) {
 
 // ─── GALLERY PAGE ────────────────────────────────────────────────────────────
 
-const API = "https://lxifagwspshizosfbmev.supabase.co/functions/v1/server/make-server-7e4d3869/gallery";
+const API = "https://oxavbqgxbcrqdffpedaf.supabase.co/functions/v1/server/make-server-7e4d3869/gallery";
 
 function GalleryPage({ onBack }: { onBack: () => void }) {
   const [photos, setPhotos] = useState<{ name: string; url: string }[]>([]);
@@ -1456,7 +1460,7 @@ const ACCESSORY_LIST = [
 
 const WRAPPING_COLORS = ["White", "Black", "Red", "Pink", "Blue"];
 
-const CHECKOUT_API = "https://lxifagwspshizosfbmev.supabase.co/functions/v1/server/make-server-7e4d3869/checkout";
+const CHECKOUT_API = "https://oxavbqgxbcrqdffpedaf.supabase.co/functions/v1/server/make-server-7e4d3869/checkout";
 
 function RoseBouquetsPage({ onBack, onNavigateHome }: { onBack: () => void; onNavigateHome: (page?: string) => void }) {
   const [submitted, setSubmitted] = useState(false);
@@ -1481,6 +1485,7 @@ function RoseBouquetsPage({ onBack, onNavigateHome }: { onBack: () => void; onNa
   const [discountApplied, setDiscountApplied] = useState(false);
   const [discountError, setDiscountError] = useState("");
   const [address, setAddress] = useState({ street: "", apt: "", city: "", state: "Minnesota", zip: "" });
+  const [addressError, setAddressError] = useState("");
 
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -1545,6 +1550,18 @@ function RoseBouquetsPage({ onBack, onNavigateHome }: { onBack: () => void; onNa
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+
+    if (dateType === "delivery") {
+      const zipDigits = address.zip.replace(/\D/g, "").slice(0, 5);
+      const zipNum = parseInt(zipDigits, 10);
+      const isMinnesotaZip = zipDigits.length === 5 && zipNum >= 55001 && zipNum <= 56763;
+      if (!isMinnesotaZip) {
+        setAddressError("We currently only deliver within Minnesota. Please double-check your zip code, or switch to pick up.");
+        return;
+      }
+    }
+    setAddressError("");
+
     if (paymentMethod === "zelle" || isCustom) {
       setSubmitted(true);
       return;
@@ -1563,6 +1580,7 @@ function RoseBouquetsPage({ onBack, onNavigateHome }: { onBack: () => void; onNa
           accessoryAddons,
           wrappingColor,
           dateType,
+          address: dateType === "delivery" ? address : undefined,
           discountCode: discountApplied ? discountInput : "",
           name: form.name,
           contactMethod,
@@ -1722,7 +1740,10 @@ function RoseBouquetsPage({ onBack, onNavigateHome }: { onBack: () => void; onNa
               {/* Delivery address */}
               {dateType === "delivery" && (
                 <div className="flex flex-col gap-4 p-5 bg-secondary/50 border border-border">
-                  <p className="text-xs tracking-[0.2em] uppercase text-muted-foreground" style={{ fontFamily: "'DM Mono', monospace" }}>Delivery Address</p>
+                  <div>
+                    <p className="text-xs tracking-[0.2em] uppercase text-muted-foreground" style={{ fontFamily: "'DM Mono', monospace" }}>Delivery Address</p>
+                    <p className="text-xs text-muted-foreground/70 mt-1">We currently deliver within Minnesota only.</p>
+                  </div>
                   <div className="flex flex-col gap-1">
                     <label className="text-xs text-muted-foreground">Street address</label>
                     <input required type="text" value={address.street} onChange={(e) => setAddress({ ...address, street: e.target.value })} className="border-b border-border bg-transparent py-2.5 text-sm focus:outline-none focus:border-foreground transition-colors" placeholder="123 Main St" />
@@ -1738,13 +1759,14 @@ function RoseBouquetsPage({ onBack, onNavigateHome }: { onBack: () => void; onNa
                     </div>
                     <div className="flex flex-col gap-1">
                       <label className="text-xs text-muted-foreground">State</label>
-                      <input required type="text" value={address.state} onChange={(e) => setAddress({ ...address, state: e.target.value })} className="border-b border-border bg-transparent py-2.5 text-sm focus:outline-none focus:border-foreground transition-colors" />
+                      <input required readOnly type="text" value={address.state} className="border-b border-border bg-transparent py-2.5 text-sm text-muted-foreground cursor-not-allowed" />
                     </div>
                   </div>
                   <div className="flex flex-col gap-1">
                     <label className="text-xs text-muted-foreground">Zip code</label>
                     <input required type="text" value={address.zip} onChange={(e) => setAddress({ ...address, zip: e.target.value })} className="border-b border-border bg-transparent py-2.5 text-sm focus:outline-none focus:border-foreground transition-colors" placeholder="55401" maxLength={10} />
                   </div>
+                  {addressError && <p className="text-xs text-destructive">{addressError}</p>}
                 </div>
               )}
 
