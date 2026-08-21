@@ -123,6 +123,64 @@ async function ensureBucket() {
   }
 }
 
+// ─── Inspiration photo uploads (private-ish support bucket for inquiries — never trust client-sent totals applies here too) ───
+
+const INSPO_BUCKET = "inspiration";
+const NOTIFY_EMAIL = "raventheflorist@yahoo.com";
+
+async function ensureInspoBucket() {
+  const sb = supabase();
+  const { data: buckets } = await sb.storage.listBuckets();
+  if (!buckets?.find((b: any) => b.name === INSPO_BUCKET)) {
+    await sb.storage.createBucket(INSPO_BUCKET, { public: true });
+  }
+}
+
+function labelize(key: string): string {
+  return key.replace(/([A-Z])/g, " $1").replace(/^./, (ch) => ch.toUpperCase()).trim();
+}
+
+function escapeHtml(s: string): string {
+  const map: Record<string, string> = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+  return s.replace(/[&<>"']/g, (ch) => map[ch]);
+}
+
+async function sendNotificationEmail(subject: string, fields: Record<string, unknown>, photoUrls: string[]): Promise<{ sent: boolean; detail: string }> {
+  const apiKey = Deno.env.get("RESEND_API_KEY");
+  if (!apiKey) {
+    return { sent: false, detail: "RESEND_API_KEY not set" };
+  }
+  const rows = Object.entries(fields)
+    .filter(([, v]) => v !== "" && v !== undefined && v !== null)
+    .map(([k, v]) => `<tr><td style="padding:4px 16px 4px 0;color:#666;white-space:nowrap;vertical-align:top;">${escapeHtml(labelize(k))}</td><td style="padding:4px 0;">${escapeHtml(String(v))}</td></tr>`)
+    .join("");
+  const photosHtml = photoUrls.length
+    ? `<p><strong>Inspiration photos:</strong></p><ul>${photoUrls.map((u) => `<li><a href="${u}">${escapeHtml(u)}</a></li>`).join("")}</ul>`
+    : "";
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from: "Raven the Florist Website <onboarding@resend.dev>",
+        to: [NOTIFY_EMAIL],
+        subject,
+        html: `<h2>${escapeHtml(subject)}</h2><table>${rows}</table>${photosHtml}`,
+      }),
+    });
+    if (!res.ok) {
+      const detail = await res.text();
+      console.log("Resend email failed:", detail);
+      return { sent: false, detail };
+    }
+    return { sent: true, detail: "" };
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    console.log("Resend email error:", detail);
+    return { sent: false, detail };
+  }
+}
+
 // List all gallery photos
 app.get("/make-server-7e4d3869/gallery", async (c) => {
   await ensureBucket();
@@ -161,6 +219,38 @@ app.delete("/make-server-7e4d3869/gallery/:filename", async (c) => {
   const { error } = await sb.storage.from(BUCKET).remove([filename]);
   if (error) return c.json({ error: error.message }, 500);
   return c.json({ success: true });
+});
+
+// Upload an inspiration photo (used by inquiry forms and the Rose Bouquets checkout flow)
+app.post("/make-server-7e4d3869/inspiration/upload", async (c) => {
+  await ensureInspoBucket();
+  const sb = supabase();
+  const formData = await c.req.formData();
+  const file = formData.get("file") as File | null;
+  if (!file) return c.json({ error: "No file provided" }, 400);
+  const ext = file.name.split(".").pop() ?? "jpg";
+  const filename = `${crypto.randomUUID()}.${ext}`;
+  const buffer = await file.arrayBuffer();
+  const { error } = await sb.storage.from(INSPO_BUCKET).upload(filename, buffer, { contentType: file.type });
+  if (error) return c.json({ error: error.message }, 500);
+  const url = `${Deno.env.get("SUPABASE_URL")}/storage/v1/object/public/${INSPO_BUCKET}/${filename}`;
+  return c.json({ name: filename, url });
+});
+
+// Record a non-payment inquiry (Floral Basket, Build Your Own Bouquet, Event Inquiry, Rose Bouquets paid via Zelle/Custom)
+// and email Raven the full details, since these never touch Stripe.
+app.post("/make-server-7e4d3869/inquiry", async (c) => {
+  const body = await c.req.json();
+  const type = typeof body.type === "string" ? body.type : "inquiry";
+  const fields = body.fields && typeof body.fields === "object" ? body.fields : {};
+  const photoUrls: string[] = Array.isArray(body.photoUrls) ? body.photoUrls.filter((u: unknown) => typeof u === "string") : [];
+
+  const id = crypto.randomUUID();
+  await kv.set(`inquiry:${id}`, { type, ...fields, photoUrls, receivedAt: new Date().toISOString() });
+
+  const emailResult = await sendNotificationEmail(`New ${labelize(type)} — ${fields.name ?? "Website inquiry"}`, fields, photoUrls);
+
+  return c.json({ success: true, emailSent: emailResult.sent, emailDetail: emailResult.detail });
 });
 
 // Create a Stripe Checkout session for a Rose Bouquets deposit
@@ -218,6 +308,7 @@ app.post("/make-server-7e4d3869/checkout/create-session", async (c) => {
         notes: (body.notes ?? "").slice(0, 400),
         grandTotal: grandTotal.toFixed(2),
         deposit: deposit.toFixed(2),
+        inspirationPhotos: Array.isArray(body.photoUrls) ? body.photoUrls.join(", ").slice(0, 500) : "",
       },
     });
     return c.json({ url: session.url });

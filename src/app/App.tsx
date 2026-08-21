@@ -10,6 +10,45 @@ import ravenPhoto from "@/imports/raven.jpg";
 
 type Page = "home" | "rose-bouquets" | "floral-basket" | "build-bouquet" | "policies" | "gallery" | "event-inquiry" | "contact";
 
+// ─── SHARED BACKEND HELPERS ────────────────────────────────────────────────────
+
+const SERVER_BASE = "https://oxavbqgxbcrqdffpedaf.supabase.co/functions/v1/server/make-server-7e4d3869";
+const INSPIRATION_API = `${SERVER_BASE}/inspiration`;
+const INQUIRY_API = `${SERVER_BASE}/inquiry`;
+
+// Uploads inspiration photos and returns their public URLs. Best-effort: a failed
+// upload is skipped rather than blocking the rest, so one bad file can't sink the inquiry.
+async function uploadInspoPhotos(files: File[]): Promise<string[]> {
+  const urls: string[] = [];
+  for (const file of files) {
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch(`${INSPIRATION_API}/upload`, { method: "POST", body: fd });
+      const data = await res.json();
+      if (data.url) urls.push(data.url);
+    } catch {
+      // skip this file, keep going
+    }
+  }
+  return urls;
+}
+
+// Submits a non-payment inquiry (floral basket, build-your-own, event, or a Zelle/custom rose order)
+// so it actually reaches Raven — these never touch Stripe, so this is their only path out.
+async function submitInquiry(type: string, fields: Record<string, unknown>, photoUrls: string[]): Promise<boolean> {
+  try {
+    const res = await fetch(INQUIRY_API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type, fields, photoUrls }),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
 // ─── DATA ────────────────────────────────────────────────────────────────────
 
 const NAV_LINKS = ["Event Inquiry", "Policies", "Gallery"];
@@ -316,10 +355,30 @@ function FloralBasketPage({ onBack, onNavigateHome }: { onBack: () => void; onNa
   const [form, setForm] = useState({ name: "", email: "", phone: "", quantity: "", date: "", timeframe: "", notes: "" });
   const [inspoFiles, setInspoFiles] = useState<File[]>([]);
   const [dragging, setDragging] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   function addInspoFiles(files: FileList | null) {
     if (!files) return;
     setInspoFiles((prev) => [...prev, ...Array.from(files).filter((f) => f.type.startsWith("image/"))]);
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setSubmitting(true);
+    setSubmitError("");
+    const photoUrls = await uploadInspoPhotos(inspoFiles);
+    const ok = await submitInquiry(
+      "floral-basket-inquiry",
+      { name: form.name, contactMethod, email: form.email, phone: form.phone, quantity: form.quantity, date: form.date, timeframe: form.timeframe, notes: form.notes },
+      photoUrls
+    );
+    setSubmitting(false);
+    if (ok) {
+      setSubmitted(true);
+    } else {
+      setSubmitError("Something went wrong sending your inquiry. Please try again, or email Raventheflorist@yahoo.com directly.");
+    }
   }
 
   return (
@@ -389,7 +448,7 @@ function FloralBasketPage({ onBack, onNavigateHome }: { onBack: () => void; onNa
                 </div>
               </div>
             ) : (
-              <form onSubmit={(e) => { e.preventDefault(); setSubmitted(true); }} className="flex flex-col gap-10">
+              <form onSubmit={handleSubmit} className="flex flex-col gap-10">
 
                 {/* Your Information */}
                 <div>
@@ -502,9 +561,10 @@ function FloralBasketPage({ onBack, onNavigateHome }: { onBack: () => void; onNa
                 </div>
 
                 <div className="border-t border-border pt-8 flex flex-col gap-3">
-                  <button type="submit" className="self-start bg-primary text-primary-foreground px-10 py-3.5 text-sm flex items-center gap-2 hover:bg-primary/90 transition-colors">
-                    Submit Inquiry <ArrowRight size={14} />
+                  <button type="submit" disabled={submitting} className="self-start bg-primary text-primary-foreground px-10 py-3.5 text-sm flex items-center gap-2 hover:bg-primary/90 transition-colors disabled:opacity-60">
+                    {submitting ? "Sending Inquiry…" : <>Submit Inquiry <ArrowRight size={14} /></>}
                   </button>
+                  {submitError && <p className="text-xs text-destructive">{submitError}</p>}
                   <p className="text-xs text-muted-foreground">Every arrangement is crafted with intention. Expect to hear back within 24 hours with a personalized quote and all the details needed to bring your vision to life.</p>
                 </div>
 
@@ -554,10 +614,30 @@ function BuildBouquetPage({ onBack }: { onBack: () => void }) {
   const [form, setForm] = useState({ name: "", email: "", phone: "", contactMethod: "email", quantity: "", date: "", timeframe: "", notes: "" });
   const [inspoFiles, setInspoFiles] = useState<File[]>([]);
   const [dragging, setDragging] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   function addInspoFiles(files: FileList | null) {
     if (!files) return;
     setInspoFiles((prev) => [...prev, ...Array.from(files).filter((f) => f.type.startsWith("image/"))]);
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setSubmitting(true);
+    setSubmitError("");
+    const photoUrls = await uploadInspoPhotos(inspoFiles);
+    const ok = await submitInquiry(
+      "build-your-own-bouquet-inquiry",
+      { name: form.name, contactMethod: form.contactMethod, email: form.email, phone: form.phone, quantity: form.quantity, date: form.date, timeframe: form.timeframe, notes: form.notes },
+      photoUrls
+    );
+    setSubmitting(false);
+    if (ok) {
+      setSubmitted(true);
+    } else {
+      setSubmitError("Something went wrong sending your inquiry. Please try again, or email Raventheflorist@yahoo.com directly.");
+    }
   }
 
   return (
@@ -624,7 +704,7 @@ function BuildBouquetPage({ onBack }: { onBack: () => void }) {
                 </div>
               </div>
             ) : (
-              <form onSubmit={(e) => { e.preventDefault(); setSubmitted(true); }} className="flex flex-col gap-10">
+              <form onSubmit={handleSubmit} className="flex flex-col gap-10">
 
                 {/* Contact info */}
                 <div>
@@ -737,9 +817,10 @@ function BuildBouquetPage({ onBack }: { onBack: () => void }) {
                 </div>
 
                 <div className="border-t border-border pt-8 flex flex-col gap-3">
-                  <button type="submit" className="self-start bg-primary text-primary-foreground px-10 py-3.5 text-sm flex items-center gap-2 hover:bg-primary/90 transition-colors">
-                    Submit Bouquet Inquiry <ArrowRight size={14} />
+                  <button type="submit" disabled={submitting} className="self-start bg-primary text-primary-foreground px-10 py-3.5 text-sm flex items-center gap-2 hover:bg-primary/90 transition-colors disabled:opacity-60">
+                    {submitting ? "Sending Inquiry…" : <>Submit Bouquet Inquiry <ArrowRight size={14} /></>}
                   </button>
+                  {submitError && <p className="text-xs text-destructive">{submitError}</p>}
                   <p className="text-xs text-muted-foreground">Every arrangement is crafted with intention. Expect to hear back within 24 hours with a personalized quote and all the details needed to bring your vision to life.</p>
                 </div>
 
@@ -882,11 +963,43 @@ function EventInquiryPage({ onBack }: { onBack: () => void }) {
   const [form, setForm] = useState({ name: "", email: "", phone: "", eventType: "", eventDate: "", consultDate: "", consultTime: "", guests: "", budget: "", venue: "", vision: "" });
   const [inspoFiles, setInspoFiles] = useState<File[]>([]);
   const [dragging, setDragging] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   function addInspoFiles(files: FileList | null) {
     if (!files) return;
     const valid = Array.from(files).filter((f) => f.type.startsWith("image/"));
     setInspoFiles((prev) => [...prev, ...valid]);
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setSubmitting(true);
+    setSubmitError("");
+    const photoUrls = await uploadInspoPhotos(inspoFiles);
+    const ok = await submitInquiry(
+      "event-inquiry",
+      {
+        name: form.name,
+        email: form.email,
+        phone: form.phone,
+        eventType: form.eventType,
+        eventDate: form.eventDate,
+        budget: form.budget,
+        venue: form.venue,
+        vision: form.vision,
+        specialRequests: form.guests,
+        consultDate: form.consultDate,
+        consultTime: form.consultTime,
+      },
+      photoUrls
+    );
+    setSubmitting(false);
+    if (ok) {
+      setSubmitted(true);
+    } else {
+      setSubmitError("Something went wrong sending your inquiry. Please try again, or email Raventheflorist@yahoo.com directly.");
+    }
   }
 
   return (
@@ -988,7 +1101,7 @@ function EventInquiryPage({ onBack }: { onBack: () => void }) {
                 </div>
               </div>
             ) : (
-              <form onSubmit={(e) => { e.preventDefault(); setSubmitted(true); }} className="flex flex-col gap-8">
+              <form onSubmit={handleSubmit} className="flex flex-col gap-8">
 
                 <div>
                   <p className="text-xs tracking-[0.25em] uppercase text-muted-foreground mb-6" style={{ fontFamily: "'DM Mono', monospace" }}>Your Information</p>
@@ -1177,9 +1290,10 @@ function EventInquiryPage({ onBack }: { onBack: () => void }) {
                   </div>
                 </div>
 
-                <button type="submit" className="self-start bg-primary text-primary-foreground px-10 py-3.5 text-sm flex items-center gap-2 hover:bg-primary/90 transition-colors">
-                  Book Free Consultation <ArrowRight size={14} />
+                <button type="submit" disabled={submitting} className="self-start bg-primary text-primary-foreground px-10 py-3.5 text-sm flex items-center gap-2 hover:bg-primary/90 transition-colors disabled:opacity-60">
+                  {submitting ? "Sending Inquiry…" : <>Book Free Consultation <ArrowRight size={14} /></>}
                 </button>
+                {submitError && <p className="text-xs text-destructive -mt-4">{submitError}</p>}
                 <p className="text-xs text-muted-foreground -mt-4">A video chat link will be sent to your email within 48 hours of submitting.</p>
 
               </form>
@@ -1563,13 +1677,44 @@ function RoseBouquetsPage({ onBack, onNavigateHome }: { onBack: () => void; onNa
     setAddressError("");
 
     if (paymentMethod === "zelle" || isCustom) {
-      setSubmitted(true);
+      setPayingOnline(true);
+      const photoUrls = await uploadInspoPhotos(inspoFiles);
+      const ok = await submitInquiry(
+        isCustom ? "rose-bouquet-custom-order" : "rose-bouquet-zelle-order",
+        {
+          name: form.name,
+          contactMethod,
+          email: form.email,
+          phone: form.phone,
+          order: isCustom ? "Custom (100+ roses or one-of-a-kind)" : selectedOrder?.label ?? form.order,
+          roseColors: roseColors.join(", "),
+          flowerAddons: flowerAddons.join(", "),
+          accessoryAddons: accessoryAddons.join(", "),
+          wrappingColor,
+          dateType,
+          deliveryAddress: dateType === "delivery" ? [address.street, address.apt, `${address.city}, ${address.state} ${address.zip}`].filter(Boolean).join(", ") : "",
+          date: form.date,
+          timeSlot: form.timeSlot,
+          notes: form.notes,
+          paymentMethod,
+          estimatedGrandTotal: isCustom ? "TBD — custom order" : `$${grandTotal.toFixed(2)}`,
+          estimatedDeposit: isCustom ? "TBD — custom order" : `$${deposit.toFixed(2)}`,
+        },
+        photoUrls
+      );
+      setPayingOnline(false);
+      if (ok) {
+        setSubmitted(true);
+      } else {
+        setCheckoutNotice("failed");
+      }
       return;
     }
 
     setCheckoutNotice(null);
     setPayingOnline(true);
     try {
+      const photoUrls = await uploadInspoPhotos(inspoFiles);
       const res = await fetch(`${CHECKOUT_API}/create-session`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1589,6 +1734,7 @@ function RoseBouquetsPage({ onBack, onNavigateHome }: { onBack: () => void; onNa
           date: form.date,
           timeSlot: form.timeSlot,
           notes: form.notes,
+          photoUrls,
           origin: window.location.origin + window.location.pathname,
         }),
       });
@@ -1668,7 +1814,7 @@ function RoseBouquetsPage({ onBack, onNavigateHome }: { onBack: () => void; onNa
                 <div className="bg-destructive/10 border border-destructive/30 px-4 py-3 text-sm text-destructive">
                   {checkoutNotice === "cancelled"
                     ? "Your payment was cancelled — no charge was made. You can try again below."
-                    : "We couldn't confirm your payment. If you were charged, please contact us — otherwise, try again below."}
+                    : "Something went wrong submitting your request. If you were charged, please contact us — otherwise, please try again below."}
                 </div>
               )}
               <div>
@@ -2051,18 +2197,20 @@ function RoseBouquetsPage({ onBack, onNavigateHome }: { onBack: () => void; onNa
                   </div>
                 )}
 
-                {/* Policy agreement checkbox */}
-                <label className="flex items-start gap-3 cursor-pointer mb-6 group">
+                {/* Policy agreement checkbox — plain div, not <label>: a native label auto-forwards clicks to its
+                    first nested form control, and the "policies" button below is one, which popped the modal open
+                    every time the checkbox itself was clicked. */}
+                <div className="flex items-start gap-3 cursor-pointer mb-6 group">
                   <div
                     onClick={() => setAgreedToPolicies(!agreedToPolicies)}
                     className={`mt-0.5 w-4 h-4 border flex-shrink-0 flex items-center justify-center transition-colors ${agreedToPolicies ? "bg-primary border-primary" : "border-border group-hover:border-foreground"}`}
                   >
                     {agreedToPolicies && <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                   </div>
-                  <span className="text-xs text-muted-foreground leading-relaxed">
-                    I have read and agree to all <button type="button" onClick={() => setShowPoliciesModal(true)} className="underline text-foreground hover:text-primary transition-colors">policies</button>, including the cancellation policy, substitution policy, and care instructions. I understand the deposit is non-refundable once florals have been sourced.
+                  <span className="text-xs text-muted-foreground leading-relaxed" onClick={() => setAgreedToPolicies(!agreedToPolicies)}>
+                    I have read and agree to all <button type="button" onClick={(e) => { e.stopPropagation(); setShowPoliciesModal(true); }} className="underline text-foreground hover:text-primary transition-colors">policies</button>, including the cancellation policy, substitution policy, and care instructions. I understand the deposit is non-refundable once florals have been sourced.
                   </span>
-                </label>
+                </div>
 
                 <button
                   type="submit"
@@ -2070,7 +2218,9 @@ function RoseBouquetsPage({ onBack, onNavigateHome }: { onBack: () => void; onNa
                   className="bg-primary text-primary-foreground px-10 py-3.5 text-sm flex items-center gap-2 hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <ShoppingBag size={14} />
-                  {payingOnline ? "Redirecting to secure checkout…" : isCustom ? "Send Inquiry" : paymentMethod === "pay-online" ? "Pay Deposit & Book" : "Submit Booking"}
+                  {payingOnline
+                    ? (paymentMethod === "pay-online" ? "Redirecting to secure checkout…" : "Sending…")
+                    : isCustom ? "Send Inquiry" : paymentMethod === "pay-online" ? "Pay Deposit & Book" : "Submit Booking"}
                 </button>
                 {!agreedToPolicies && <p className="text-xs text-muted-foreground mt-2">Please agree to the policies above to continue.</p>}
               </div>
