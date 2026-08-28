@@ -17,6 +17,9 @@ function figmaAssetResolver() {
 }
 
 export default defineConfig({
+  // Relative base so the build works whether it's served from a GitHub Pages
+  // project subpath (e.g. /raventheflorist/) or later from a custom domain root.
+  base: './',
   plugins: [
     figmaAssetResolver(),
     // The React and Tailwind plugins are both required for Make, even if
