@@ -16,6 +16,14 @@ const SERVER_BASE = "https://oxavbqgxbcrqdffpedaf.supabase.co/functions/v1/serve
 const INSPIRATION_API = `${SERVER_BASE}/inspiration`;
 const INQUIRY_API = `${SERVER_BASE}/inquiry`;
 
+// Earliest selectable order/delivery date — gives the florist a minimum lead time to prepare.
+const ORDER_LEAD_DAYS = 4;
+function minOrderDate() {
+  const d = new Date();
+  d.setDate(d.getDate() + ORDER_LEAD_DAYS);
+  return d.toISOString().split("T")[0];
+}
+
 // Uploads inspiration photos and returns their public URLs. Best-effort: a failed
 // upload is skipped rather than blocking the rest, so one bad file can't sink the inquiry.
 async function uploadInspoPhotos(files: File[]): Promise<string[]> {
@@ -502,7 +510,7 @@ function FloralBasketPage({ onBack, onNavigateHome }: { onBack: () => void; onNa
                       <label className="text-xs text-muted-foreground">Desired date</label>
                       <div className="inline-flex items-center gap-2 border-b border-border pb-2 w-full">
                         <Calendar size={14} className="text-muted-foreground flex-shrink-0" />
-                        <input required type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} min={new Date().toISOString().split("T")[0]} className="bg-transparent text-sm focus:outline-none flex-1 cursor-pointer" style={{ colorScheme: "light" }} />
+                        <input required type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} min={minOrderDate()} className="bg-transparent text-sm focus:outline-none flex-1 cursor-pointer" style={{ colorScheme: "light" }} />
                       </div>
                     </div>
                     <div className="flex flex-col gap-2">
@@ -758,7 +766,7 @@ function BuildBouquetPage({ onBack }: { onBack: () => void }) {
                       <label className="text-xs text-muted-foreground">Desired date</label>
                       <div className="inline-flex items-center gap-2 border-b border-border pb-2 w-full">
                         <Calendar size={14} className="text-muted-foreground flex-shrink-0" />
-                        <input required type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} min={new Date().toISOString().split("T")[0]} className="bg-transparent text-sm focus:outline-none flex-1 cursor-pointer" style={{ colorScheme: "light" }} />
+                        <input required type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} min={minOrderDate()} className="bg-transparent text-sm focus:outline-none flex-1 cursor-pointer" style={{ colorScheme: "light" }} />
                       </div>
                     </div>
                     <div className="flex flex-col gap-2">
@@ -1143,7 +1151,7 @@ function EventInquiryPage({ onBack }: { onBack: () => void }) {
                         <label className="text-xs text-muted-foreground">Event date</label>
                         <div className="inline-flex items-center gap-2 border-b border-border pb-2 w-full">
                           <Calendar size={14} className="text-muted-foreground flex-shrink-0" />
-                          <input required type="date" value={form.eventDate} onChange={(e) => setForm({ ...form, eventDate: e.target.value })} min={new Date().toISOString().split("T")[0]} className="bg-transparent text-sm focus:outline-none flex-1 cursor-pointer" style={{ colorScheme: "light" }} />
+                          <input required type="date" value={form.eventDate} onChange={(e) => setForm({ ...form, eventDate: e.target.value })} min={minOrderDate()} className="bg-transparent text-sm focus:outline-none flex-1 cursor-pointer" style={{ colorScheme: "light" }} />
                         </div>
                       </div>
                     </div>
@@ -1883,7 +1891,7 @@ function RoseBouquetsPage({ onBack, onNavigateHome }: { onBack: () => void; onNa
                 </div>
                 <div className="inline-flex items-center gap-2 border-b border-border pb-2 w-full">
                   <Calendar size={14} className="text-muted-foreground flex-shrink-0" />
-                  <input required type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} min={new Date().toISOString().split("T")[0]} className="bg-transparent text-sm focus:outline-none flex-1 cursor-pointer" style={{ colorScheme: "light" }} />
+                  <input required type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} min={minOrderDate()} className="bg-transparent text-sm focus:outline-none flex-1 cursor-pointer" style={{ colorScheme: "light" }} />
                 </div>
                 {/* Time slot */}
                 <div className="flex flex-col gap-1 mt-3">
