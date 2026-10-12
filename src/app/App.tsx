@@ -847,9 +847,7 @@ const API = "https://oxavbqgxbcrqdffpedaf.supabase.co/functions/v1/server/make-s
 
 function GalleryPage({ onBack }: { onBack: () => void }) {
   const [photos, setPhotos] = useState<{ name: string; url: string }[]>([]);
-  const [dragging, setDragging] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState(false);
 
   React.useEffect(() => {
     fetch(API)
@@ -857,25 +855,6 @@ function GalleryPage({ onBack }: { onBack: () => void }) {
       .then((d) => { setPhotos(d.photos ?? []); setLoading(false); })
       .catch(() => setLoading(false));
   }, []);
-
-  async function addFiles(files: FileList | null) {
-    if (!files) return;
-    const valid = Array.from(files).filter((f) => f.type.startsWith("image/"));
-    setUploading(true);
-    for (const file of valid) {
-      const fd = new FormData();
-      fd.append("file", file);
-      const res = await fetch(`${API}/upload`, { method: "POST", body: fd });
-      const data = await res.json();
-      if (data.url) setPhotos((prev) => [{ name: data.name, url: data.url }, ...prev]);
-    }
-    setUploading(false);
-  }
-
-  async function removePhoto(name: string) {
-    await fetch(`${API}/${encodeURIComponent(name)}`, { method: "DELETE" });
-    setPhotos((prev) => prev.filter((p) => p.name !== name));
-  }
 
   return (
     <div className="min-h-screen bg-background text-foreground" style={{ fontFamily: "'DM Sans', sans-serif" }}>
@@ -904,29 +883,6 @@ function GalleryPage({ onBack }: { onBack: () => void }) {
           <h1 className="text-5xl md:text-6xl mb-4" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 400 }}>Gallery</h1>
           <p className="text-muted-foreground font-light mb-12 max-w-lg">A look at the arrangements, moments, and florals that make up our work.</p>
 
-          {/* Upload area */}
-          <label
-            className={`flex flex-col items-center justify-center border-2 border-dashed rounded-none px-8 py-12 mb-12 cursor-pointer transition-colors ${dragging ? "border-primary bg-primary/5" : uploading ? "border-primary/50 bg-primary/5" : "border-border hover:border-foreground/40"}`}
-            onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
-            onDragLeave={() => setDragging(false)}
-            onDrop={(e) => { e.preventDefault(); setDragging(false); addFiles(e.dataTransfer.files); }}
-          >
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" className={`mb-4 transition-colors ${uploading ? "text-primary" : "text-muted-foreground"}`}>
-              <rect x="3" y="3" width="18" height="18" rx="0" />
-              <circle cx="8.5" cy="8.5" r="1.5" />
-              <polyline points="21 15 16 10 5 21" />
-            </svg>
-            {uploading ? (
-              <p className="text-sm text-primary font-medium">Uploading...</p>
-            ) : (
-              <>
-                <p className="text-sm text-muted-foreground mb-1">Drag & drop photos here, or <span className="text-foreground underline">click to browse</span></p>
-                <p className="text-xs text-muted-foreground/60">JPG, PNG, WEBP — any size</p>
-              </>
-            )}
-            <input type="file" accept="image/*" multiple className="hidden" disabled={uploading} onChange={(e) => addFiles(e.target.files)} />
-          </label>
-
           {/* Photo grid */}
           {loading ? (
             <div className="text-center py-20">
@@ -934,7 +890,7 @@ function GalleryPage({ onBack }: { onBack: () => void }) {
             </div>
           ) : photos.length === 0 ? (
             <div className="text-center py-20 border border-border">
-              <p className="text-muted-foreground text-sm font-light">No photos yet — upload some above to build your gallery.</p>
+              <p className="text-muted-foreground text-sm font-light">No photos yet.</p>
             </div>
           ) : (
             <div className="columns-2 md:columns-3 gap-4 space-y-4">
@@ -945,15 +901,6 @@ function GalleryPage({ onBack }: { onBack: () => void }) {
                     alt={photo.name}
                     className="w-full object-cover block"
                   />
-                  <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/30 transition-colors duration-300 flex items-center justify-center">
-                    <button
-                      onClick={() => removePhoto(photo.name)}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity bg-background text-foreground p-2 hover:bg-primary hover:text-primary-foreground"
-                      title="Remove photo"
-                    >
-                      <X size={14} />
-                    </button>
-                  </div>
                 </div>
               ))}
             </div>
