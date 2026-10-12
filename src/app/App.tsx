@@ -1496,10 +1496,10 @@ function PoliciesPage({ onBack }: { onBack: () => void }) {
 // ─── ROSE BOUQUETS PAGE ───────────────────────────────────────────────────────
 
 const ROSE_OPTIONS = [
-  { value: "25", label: "25 Premium Roses", price: "$75", maxColors: 1 },
-  { value: "50", label: "50 Premium Roses", price: "$140", maxColors: 2 },
-  { value: "75", label: "75 Premium Roses", price: "$195", maxColors: 3 },
-  { value: "100", label: "100 Premium Roses", price: "$230", maxColors: 4 },
+  { value: "25", label: "25 Premium Roses", price: "$85", maxColors: 1 },
+  { value: "50", label: "50 Premium Roses", price: "$150", maxColors: 2 },
+  { value: "75", label: "75 Premium Roses", price: "$205", maxColors: 3 },
+  { value: "100", label: "100 Premium Roses", price: "$255", maxColors: 4 },
 ];
 
 const ROSE_COLORS = [
