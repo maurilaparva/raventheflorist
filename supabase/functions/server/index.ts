@@ -41,10 +41,10 @@ function stripe() {
 // ─── Rose Bouquets pricing (source of truth — mirrors src/app/App.tsx, never trust client-sent totals) ───
 
 const ROSE_OPTIONS: Record<string, { label: string; price: number }> = {
-  "25": { label: "25 Premium Roses", price: 95 },
-  "50": { label: "50 Premium Roses", price: 185 },
-  "75": { label: "75 Premium Roses", price: 265 },
-  "100": { label: "100 Premium Roses", price: 345 },
+  "25": { label: "25 Premium Roses", price: 75 },
+  "50": { label: "50 Premium Roses", price: 140 },
+  "75": { label: "75 Premium Roses", price: 195 },
+  "100": { label: "100 Premium Roses", price: 230 },
 };
 
 const FLOWER_PRICES: Record<string, number> = {
